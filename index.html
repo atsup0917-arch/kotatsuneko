@@ -8595,6 +8595,11 @@ function renderDay(){
 .ccFreeCalDot{position:absolute;left:0;right:0;bottom:4px;display:block;width:7px;height:7px;margin:0 auto;border-radius:50%;background:#c0392b}
 .ccFreeCalHint{font-size:13px;color:#666;margin-top:8px;line-height:1.6}
 .ccFreeCalInfo{margin-top:10px;padding:12px;background:#f3e3d9;border:1px solid #d9a98a;border-radius:10px;font-size:15px;color:#7a2e2e;font-weight:700}
+.ccConfirmOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.ccConfirmBox{background:#fff;border-radius:18px;padding:22px;max-width:360px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.ccConfirmMsg{font-size:17px;font-weight:700;color:#222;margin-bottom:18px;text-align:center;line-height:1.5}
+.ccConfirmBtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ccConfirmBtns button{margin:0!important}
 </style>
 <style id="prepSeasonStyle">
 /* 仕込み品目の季節表示機能（2026-09-06追加）。
@@ -8801,8 +8806,22 @@ function renderDay(){
     if(input)input.value='';
   }
 
+  function ccConfirm(message){
+    return new Promise(resolve=>{
+      const overlay=document.createElement('div');
+      overlay.className='ccConfirmOverlay';
+      overlay.innerHTML=`<div class="ccConfirmBox"><div class="ccConfirmMsg">${esc(message)}</div><div class="ccConfirmBtns"><button type="button" class="gray" data-cc-confirm-cancel>キャンセル</button><button type="button" class="danger" data-cc-confirm-ok>削除する</button></div></div>`;
+      document.body.appendChild(overlay);
+      const cleanup=v=>{overlay.remove();resolve(v)};
+      overlay.querySelector('[data-cc-confirm-ok]').onclick=()=>cleanup(true);
+      overlay.querySelector('[data-cc-confirm-cancel]').onclick=()=>cleanup(false);
+      overlay.addEventListener('click',e=>{if(e.target===overlay)cleanup(false)});
+    });
+  }
   async function deleteItem(key,id){
-    if(!confirm('この項目を削除しますか？'))return;
+    // iPhoneでホーム画面に追加した状態(standalone)だとwindow.confirm()が
+    // 表示されず削除できない不具合があったため、自前の確認モーダルに置き換えた。
+    if(!(await ccConfirm('この項目を削除しますか？')))return;
     await ccTransaction(key,arr=>{
       const i=arr.findIndex(x=>x.id===id);
       if(i>=0)arr.splice(i,1);
