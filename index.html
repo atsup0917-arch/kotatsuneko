@@ -1913,6 +1913,7 @@ html.makanaiKiosk .brandHeader{
 <details open>
 <summary>🙌 手空き作業</summary>
 <div class="settingsBody">
+  <div class="ccListToolbar"><span class="ccHint">期限が近い項目（期限切れ含む）から順に表示されます。</span></div>
   <div class="ccFreeItems" id="ccFreeItems"></div>
   <div class="ccAddRow"><input type="text" id="ccFreeInput" data-cc-input="freeTime" placeholder="項目を入力して追加"><button type="button" class="gray" id="ccFreeAdd" data-cc-add="freeTime">＋ 追加</button></div>
   <div class="ccFreeCalWrap">
@@ -9042,8 +9043,15 @@ function renderDay(){
   function renderFree(){
     const container=$('ccFreeItems');
     if(!container)return;
-    const arr=lists.freeTime||[];
     updateFreeDueDates();
+    const arr=(lists.freeTime||[]).slice().sort((a,b)=>{
+      const da=dueDateISO((freeRecords[a.id]||{}).date,itemThresholdDays(a));
+      const db=dueDateISO((freeRecords[b.id]||{}).date,itemThresholdDays(b));
+      if(da&&db)return da<db?-1:da>db?1:0;
+      if(da&&!db)return -1;
+      if(!da&&db)return 1;
+      return 0;
+    });
     if(!arr.length){
       container.innerHTML='<div class="ccEmpty">項目がありません。下の「＋ 追加」から登録してください。</div>';
       return;
@@ -9054,10 +9062,9 @@ function renderDay(){
       const overdue=isOverdue(rec.date,days);
       const thresholdOptions=[['7','1週間'],['14','2週間'],['30','1ヶ月'],['60','2ヶ月'],['90','3ヶ月'],['180','6ヶ月']]
         .map(([v,label])=>`<option value="${v}"${days===Number(v)?' selected':''}>${label}</option>`).join('');
-      return `<div class="ccFreeItem${overdue?' ccFreeOverdue':''}" data-cc-item="${esc(item.id)}"><div class="ccFreeItemTop"><span class="ccDragHandle">⋮⋮</span><div class="ccItemTextWrap"><input type="text" class="ccItemText" data-cc-text="${esc(item.id)}" value="${esc(item.text)}"></div></div><div class="ccFreeFieldsRow"><div class="ccFreeField ccThresholdField"><span class="ccFieldLabel">⏰ 期限の目安</span><select data-cc-free-threshold="${esc(item.id)}">${thresholdOptions}</select></div><div class="ccFreeField ccDateField"><span class="ccFieldLabel">📅 日付</span><input type="date" data-cc-free-date="${esc(item.id)}" value="${esc(rec.date||'')}">${overdue?'<span class="ccOverdueBadge">⚠️ 期限切れ</span>':''}</div><div class="ccFreeField ccPersonField"><span class="ccFieldLabel">👤 担当者</span><div class="ccPersonRow"><input type="text" class="ccFreePerson" data-cc-free-person="${esc(item.id)}" placeholder="担当者名" value="${esc(rec.person||'')}"><button type="button" class="ccDeleteBtn" data-cc-del="${esc(item.id)}" aria-label="削除" title="削除">❎</button></div></div></div></div>`;
+      return `<div class="ccFreeItem${overdue?' ccFreeOverdue':''}" data-cc-item="${esc(item.id)}"><div class="ccFreeItemTop"><div class="ccItemTextWrap"><input type="text" class="ccItemText" data-cc-text="${esc(item.id)}" value="${esc(item.text)}"></div></div><div class="ccFreeFieldsRow"><div class="ccFreeField ccThresholdField"><span class="ccFieldLabel">⏰ 期限の目安</span><select data-cc-free-threshold="${esc(item.id)}">${thresholdOptions}</select></div><div class="ccFreeField ccDateField"><span class="ccFieldLabel">📅 日付</span><input type="date" data-cc-free-date="${esc(item.id)}" value="${esc(rec.date||'')}">${overdue?'<span class="ccOverdueBadge">⚠️ 期限切れ</span>':''}</div><div class="ccFreeField ccPersonField"><span class="ccFieldLabel">👤 担当者</span><div class="ccPersonRow"><input type="text" class="ccFreePerson" data-cc-free-person="${esc(item.id)}" placeholder="担当者名" value="${esc(rec.person||'')}"><button type="button" class="ccDeleteBtn" data-cc-del="${esc(item.id)}" aria-label="削除" title="削除">❎</button></div></div></div></div>`;
     }).join('');
     bindFreeRowEvents(container);
-    bindDragReorder('freeTime',container);
     bindTextAutosize(container);
   }
 
