@@ -1863,6 +1863,12 @@ html.makanaiKiosk .brandHeader{
 <button type="button" id="ccTabDinner">🌙 ディナー</button>
 </div>
 
+<div class="navtabs navtabs3" id="ccSectionTabs">
+<button type="button" id="ccSecOpen" class="active">🌅 開店作業</button>
+<button type="button" id="ccSecClose">🌇 閉店作業</button>
+<button type="button" id="ccSecFree">🙌 手空き作業</button>
+</div>
+
 <div class="navtabs" id="ccRoleTabs">
 <button type="button" id="ccRoleHall" class="active">🙋 ホール</button>
 <button type="button" id="ccRoleKitchen">🍳 キッチン</button>
@@ -1909,7 +1915,7 @@ html.makanaiKiosk .brandHeader{
 </details>
 </div>
 
-<div class="card ccListCard settingsCard">
+<div class="card ccListCard settingsCard" data-cc-list="freeTime">
 <details open>
 <summary>🙌 手空き作業</summary>
 <div class="settingsBody">
@@ -8600,6 +8606,7 @@ function renderDay(){
 .ccConfirmMsg{font-size:17px;font-weight:700;color:#222;margin-bottom:18px;text-align:center;line-height:1.5}
 .ccConfirmBtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .ccConfirmBtns button{margin:0!important}
+#ccRoleTabs[hidden]{display:none!important}
 </style>
 <style id="prepSeasonStyle">
 /* 仕込み品目の季節表示機能（2026-09-06追加）。
@@ -8683,7 +8690,7 @@ function renderDay(){
   const LIST_KEYS=['lunchOpen','lunchClose','dinnerOpen','dinnerClose','freeTime'];
   const DAY_KEYS=['lunchOpen','lunchClose','dinnerOpen','dinnerClose'];
   const DAY_LABELS=['日','月','火','水','木','金','土'];
-  let lists={},checked={},freeRecords={},mode='lunch',roleMode='hall',bound=false;
+  let lists={},checked={},freeRecords={},mode='lunch',roleMode='hall',bound=false,section='open';
   const freeThresholdDays=30;
   function itemThresholdDays(item){
     const v=Number(item&&item.thresholdDays);
@@ -9110,11 +9117,31 @@ function renderDay(){
     DAY_KEYS.forEach(k=>renderList(k));
   }
 
+  function setSection(s){
+    section=s;
+    $('ccSecOpen')?.classList.toggle('active',s==='open');
+    $('ccSecClose')?.classList.toggle('active',s==='close');
+    $('ccSecFree')?.classList.toggle('active',s==='free');
+    const lo=document.querySelector('[data-cc-list="lunchOpen"]'),lc=document.querySelector('[data-cc-list="lunchClose"]');
+    const free=document.querySelector('[data-cc-list="freeTime"]');
+    if(lo)lo.hidden=s!=='open'; if(lc)lc.hidden=s!=='close'; if(free)free.hidden=s!=='free';
+    const roleTabs=$('ccRoleTabs'); if(roleTabs)roleTabs.hidden=(s==='free');
+    // 非表示（幅0）の間にレンダリングされた項目名欄は横幅を正しく測れていないため、
+    // 表示状態に切り替わったタイミングで測り直す。
+    const k=s==='open'?'lunchOpen':s==='close'?'lunchClose':null;
+    if(k){const c=document.querySelector(`[data-cc-items="${k}"]`);if(c)bindTextAutosize(c);}
+    if(s==='free'&&free)bindTextAutosize(free);
+  }
+
   function bindStaticControls(){
     $('ccTabLunch')?.addEventListener('click',()=>setMode('lunch'));
     $('ccTabDinner')?.addEventListener('click',()=>setMode('dinner'));
     $('ccRoleHall')?.addEventListener('click',()=>setRoleMode('hall'));
     $('ccRoleKitchen')?.addEventListener('click',()=>setRoleMode('kitchen'));
+    $('ccSecOpen')?.addEventListener('click',()=>setSection('open'));
+    $('ccSecClose')?.addEventListener('click',()=>setSection('close'));
+    $('ccSecFree')?.addEventListener('click',()=>setSection('free'));
+    setSection(section);
     document.querySelectorAll('[data-cc-add]').forEach(b=>{
       if(b.dataset.ccAddBound==='1')return;
       b.dataset.ccAddBound='1';
