@@ -2860,7 +2860,6 @@ function vegUnitOptions(){
 onValue(vegProductsRef,async s=>{
  vegProducts=s.val()||{};
  if(!Object.keys(vegProducts).length){
-   for(const [order,name] of ["大葉","レモン","葉切り大根","しいたけ6入","茗荷","ナス"].entries()) await push(vegProductsRef,{name,order});
    return;
  }
  vegProductOptions();
