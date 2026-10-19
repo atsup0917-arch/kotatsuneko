@@ -1,6 +1,6 @@
 {
-  "name": "KOTATSUNEKO 開店・閉店チェック",
-  "short_name": "KOTATSUNEKO",
+  "name": "こたつねこ 開店・閉店チェック",
+  "short_name": "こたつねこ",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f7f3ee",

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>KOTATSUNEKO 開店・閉店チェック</title>
+<title>こたつねこ 開店・閉店チェック</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1591,13 +1591,9 @@ html.makanaiKiosk .brandHeader{
 </head>
 <body><div class="wrap">
 <header class="brandHeader">
-<div class="brandWord"><b>KOTATSUNEKO</b></div>
+<div class="brandWord"><b>こたつねこ</b></div>
 </header>
-<style id="kotatsunekoSingleTabFix">
-/* 開店閉店タブのみ使用するため、ナビバーを1列表示にする */
-.navtabs.navtabs4{grid-template-columns:1fr!important}
-</style>
-<div class="navtabs navtabs3 navtabs4">
+<div class="navtabs navtabs3 navtabs4" hidden style="display:none!important">
 <button id="tabShopping" hidden>🛒 買い物</button>
 <button id="tabOpenClose" class="active">✅ 開店<br>閉店</button>
 <button id="tabPrep" hidden>🔪 仕込み表</button>
@@ -1865,7 +1861,7 @@ html.makanaiKiosk .brandHeader{
 <div id="openClosePage" class="page">
 <h1>✅ 開店・閉店チェック</h1>
 
-<div class="navtabs" id="ccShiftTabs">
+<div class="navtabs" id="ccShiftTabs" hidden style="display:none">
 <button type="button" id="ccTabLunch" class="active">🌞 ランチ</button>
 <button type="button" id="ccTabDinner">🌙 ディナー</button>
 </div>
@@ -1877,7 +1873,7 @@ html.makanaiKiosk .brandHeader{
 
 <div class="card ccListCard settingsCard" data-cc-list="lunchOpen">
 <details open>
-<summary>🌞 ランチ 開店準備</summary>
+<summary>🌅 開店準備</summary>
 <div class="settingsBody">
   <div class="ccListToolbar"><span class="ccHint">「📅 曜日設定」で選んだ曜日だけ表示されます（未設定の項目は毎日表示）。</span><button type="button" class="ccShowAllBtn" data-cc-showall="lunchOpen">🔎 全項目を表示</button></div>
   <div class="ccItems" data-cc-items="lunchOpen"></div>
@@ -1887,15 +1883,10 @@ html.makanaiKiosk .brandHeader{
 </div>
 <div class="card ccListCard settingsCard" data-cc-list="lunchClose">
 <details open>
-<summary>🌞 ランチ 閉店準備</summary>
+<summary>🌇 閉店準備</summary>
 <div class="settingsBody">
   <div class="ccListToolbar"><span class="ccHint">「📅 曜日設定」で選んだ曜日だけ表示されます（未設定の項目は毎日表示）。</span><button type="button" class="ccShowAllBtn" data-cc-showall="lunchClose">🔎 全項目を表示</button></div>
   <div class="ccItems" data-cc-items="lunchClose"></div>
-  <div class="ccSalesQuick" data-cc-sales="lunch">
-    <div class="ccSalesQuickLabel">🧾 本日のランチ売上</div>
-    <div class="ccSalesQuickRow"><input type="number" min="0" step="1" id="ccSalesLunchInput" placeholder="例：120000"><button type="button" id="ccSalesLunchSave">保存</button></div>
-    <div id="ccSalesLunchStatus" class="ccSalesQuickStatus"></div>
-  </div>
   <div class="ccAddRow"><input type="text" data-cc-input="lunchClose" placeholder="項目を入力して追加"><button type="button" class="gray" data-cc-add="lunchClose">＋ 追加</button></div>
 </div>
 </details>
@@ -1916,11 +1907,6 @@ html.makanaiKiosk .brandHeader{
 <div class="settingsBody">
   <div class="ccListToolbar"><span class="ccHint">「📅 曜日設定」で選んだ曜日だけ表示されます（未設定の項目は毎日表示）。</span><button type="button" class="ccShowAllBtn" data-cc-showall="dinnerClose">🔎 全項目を表示</button></div>
   <div class="ccItems" data-cc-items="dinnerClose"></div>
-  <div class="ccSalesQuick" data-cc-sales="dinner">
-    <div class="ccSalesQuickLabel">🧾 本日のディナー売上</div>
-    <div class="ccSalesQuickRow"><input type="number" min="0" step="1" id="ccSalesDinnerInput" placeholder="例：250000"><button type="button" id="ccSalesDinnerSave">保存</button></div>
-    <div id="ccSalesDinnerStatus" class="ccSalesQuickStatus"></div>
-  </div>
   <div class="ccAddRow"><input type="text" data-cc-input="dinnerClose" placeholder="項目を入力して追加"><button type="button" class="gray" data-cc-add="dinnerClose">＋ 追加</button></div>
 </div>
 </details>
@@ -1932,6 +1918,11 @@ html.makanaiKiosk .brandHeader{
 <div class="settingsBody">
   <div class="ccFreeItems" id="ccFreeItems"></div>
   <div class="ccAddRow"><input type="text" id="ccFreeInput" data-cc-input="freeTime" placeholder="項目を入力して追加"><button type="button" class="gray" id="ccFreeAdd" data-cc-add="freeTime">＋ 追加</button></div>
+  <div class="ccFreeCalWrap">
+    <div class="ccFreeCalTitle">📅 期限カレンダー</div>
+    <div id="ccFreeCalendar"></div>
+    <div id="ccFreeCalInfo" class="ccFreeCalInfo" hidden></div>
+  </div>
 </div>
 </details>
 </div>
@@ -8591,6 +8582,21 @@ function renderDay(){
   /* 担当者欄を日付欄から少し離して右へずらす（スマホ表示は変更しない）。 */
   .ccFreeFieldsRow .ccPersonField{margin-left:24px}
 }
+.ccFreeCalWrap{margin-top:18px;padding-top:16px;border-top:1px solid #eee}
+.ccFreeCalTitle{font-size:16px;font-weight:800;color:#555;margin-bottom:10px}
+.ccFreeCalHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.ccFreeCalHead button{width:auto;flex:0 0 auto;margin:0;min-width:44px;padding:9px 12px}
+.ccFreeCalTitleMonth{font-size:17px;font-weight:800;text-align:center;flex:1}
+.ccFreeCalWeek{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+.ccFreeCalWeek div{text-align:center;font-size:12px;font-weight:700;color:#666;padding:4px 0}
+.ccFreeCalGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.ccFreeCalDay{position:relative;min-height:44px;padding:6px 2px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;color:#222!important;-webkit-text-fill-color:#222!important;font-size:15px;font-weight:700;cursor:pointer}
+.ccFreeCalDay.empty{border-color:transparent;background:transparent;cursor:default}
+.ccFreeCalDay.selected{outline:3px solid #7a2e2e;outline-offset:-2px}
+.ccFreeCalDay.hasDue{background:#f3e3d9;border-color:#d9a98a}
+.ccFreeCalDot{position:absolute;left:0;right:0;bottom:4px;display:block;width:7px;height:7px;margin:0 auto;border-radius:50%;background:#c0392b}
+.ccFreeCalHint{font-size:13px;color:#666;margin-top:8px;line-height:1.6}
+.ccFreeCalInfo{margin-top:10px;padding:12px;background:#f3e3d9;border:1px solid #d9a98a;border-radius:10px;font-size:15px;color:#7a2e2e;font-weight:700}
 </style>
 <style id="prepSeasonStyle">
 /* 仕込み品目の季節表示機能（2026-09-06追加）。
@@ -8702,6 +8708,46 @@ function renderDay(){
     });
     window.__freeTaskDueDates=map;
     window.renderMemoCalendar?.();
+    renderFreeCalendar();
+  }
+  let freeCalAnchor=null,freeCalSelected=null;
+  function renderFreeCalendar(){
+    const box=$('ccFreeCalendar'); if(!box)return;
+    const dueDates=window.__freeTaskDueDates||{};
+    if(!freeCalAnchor){
+      const b=new Date(todayStr()+'T00:00:00');
+      freeCalAnchor=new Date(b.getFullYear(),b.getMonth(),1);
+    }
+    const y=freeCalAnchor.getFullYear(), m=freeCalAnchor.getMonth();
+    const first=new Date(y,m,1), last=new Date(y,m+1,0);
+    const monthLabel=`${y}年${m+1}月`;
+    let html=`<div class="ccFreeCalHead"><button type="button" class="gray" id="ccFreeCalPrev">‹</button><div class="ccFreeCalTitleMonth">${monthLabel}</div><button type="button" class="gray" id="ccFreeCalNext">›</button></div>`;
+    html+='<div class="ccFreeCalWeek"><div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div></div>';
+    html+='<div class="ccFreeCalGrid">';
+    for(let i=0;i<first.getDay();i++)html+='<div class="ccFreeCalDay empty"></div>';
+    for(let d=1;d<=last.getDate();d++){
+      const iso=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const tasks=dueDates[iso];
+      const sel=iso===freeCalSelected;
+      const titleAttr=tasks&&tasks.length?` title="🔴 ${esc(tasks.join('、'))}"`:'';
+      html+=`<button type="button" class="ccFreeCalDay${tasks?' hasDue':''}${sel?' selected':''}" data-cc-cal-day="${iso}"${titleAttr}>${d}${tasks?'<span class="ccFreeCalDot"></span>':''}</button>`;
+    }
+    html+='</div><div class="ccFreeCalHint">🔴 印の付いた日は手空き作業の期限日です。日付をタップすると詳細が下に表示されます。</div>';
+    box.innerHTML=html;
+    renderFreeCalInfo();
+    box.querySelectorAll('[data-cc-cal-day]').forEach(b=>b.addEventListener('click',()=>{
+      freeCalSelected=b.dataset.ccCalDay;
+      renderFreeCalendar();
+    }));
+    $('ccFreeCalPrev')?.addEventListener('click',()=>{freeCalAnchor=new Date(y,m-1,1);renderFreeCalendar();});
+    $('ccFreeCalNext')?.addEventListener('click',()=>{freeCalAnchor=new Date(y,m+1,1);renderFreeCalendar();});
+  }
+  function renderFreeCalInfo(){
+    const box=$('ccFreeCalInfo'); if(!box)return;
+    const tasks=freeCalSelected?(window.__freeTaskDueDates||{})[freeCalSelected]:null;
+    if(!tasks||!tasks.length){box.hidden=true;box.textContent='';return;}
+    box.hidden=false;
+    box.textContent=`🔴 ${freeCalSelected} は手空き作業の期限日です：${tasks.join('、')}`;
   }
   let showAllState={},openDaysPanel={};
   function todayDow(){return new Date().getDay()}
